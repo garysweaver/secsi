@@ -12,6 +12,11 @@ Set the following env vars:
 * `IMAP_SERVER=imap.example.com:993`
 * `IMAP_USER=youremail@example.com`
 
+Optionally, you can set these:
+
+* `IMAP_DELAY=2` (default is 2 seconds)
+* `IMAP_S_CLIENT_OPTS="-crlf -starttls smtp"` (default is `-crlf`)
+
 ### Usage
 
 Refer to [rfc3501](http://tools.ietf.org/html/rfc3501) for search.
@@ -20,11 +25,11 @@ Example usage:
 
 ```
 secsi list
-secsi get mailbox id_or_range
+secsi fetch mailbox id_or_range *options
   e.g.
-  secsi get INBOX 3456
-  secsi get INBOX 3456:3466
-secsi search mailbox search_string
+  secsi fetch INBOX 3456 FULL
+  secsi fetch INBOX 3456:3466 \"(BODY.PEEK[HEADER.FIELDS (DATE FROM SUBJECT)])\"
+secsi search mailbox *options
   e.g
   secsi search INBOX SENTON 1-jun-2012
   secsi search INBOX SENTSINCE 1-may-2012 SENTBEFORE 3-jun-2012

@@ -40,17 +40,22 @@ Copyright 2014 Gary S. Weaver
 usage:
 
   secsi list
-  secsi get mailbox id_or_range
+  secsi fetch mailbox id_or_range *options
     e.g.
-    secsi get INBOX 3456
-    secsi get INBOX 3456:3466
-  secsi search mailbox search_string
+    secsi fetch INBOX 3456 FULL
+    secsi fetch INBOX 3456:3466 \"(BODY.PEEK[HEADER.FIELDS (DATE FROM SUBJECT)])\"
+  secsi search mailbox *options
     e.g
     secsi search INBOX SENTON 1-jun-2012
     secsi search INBOX SENTSINCE 1-may-2012 SENTBEFORE 3-jun-2012
   secsi expunge INBOX
 "
     exit 1
+fi
+
+if [ -z ${IMAP_S_CLIENT_OPTS+x} ]; then
+    # for starttls: IMAP_S_CLIENT_OPTS="-crlf -starttls smtp"
+    export IMAP_S_CLIENT_OPTS="-crlf"
 fi
 
 if [ -z ${IMAP_DELAY+x} ]; then
@@ -61,6 +66,9 @@ echo -n Password:
 read -s password
 echo
 
+IFS=' ' read -a split_s_client_opts <<< "$IMAP_S_CLIENT_OPTS"
+echo "sending commands to: openssl s_client -connect $IMAP_SERVER $IMAP_S_CLIENT_OPTS"
+
 case $1 in
     list)
     (\
@@ -69,32 +77,32 @@ case $1 in
         sleep $IMAP_DELAY && \
         echo "t2 LIST \"\" \"%\"" && \
         sleep $IMAP_DELAY && \
-        echo "QUIT" ) | openssl s_client -connect $IMAP_SERVER -crlf
+        echo "QUIT" ) | openssl s_client -connect $IMAP_SERVER $split_s_client_opts
     ;;
-    get)
+    fetch)
     if [ -z ${3+x} ]; then
-        echo "usage: secsi get mailbox id_or_range"
+        echo "usage: secsi fetch mailbox id_or_range *options"
         exit 1
     fi
     echo "mailbox: $2"
-    echo "id_or_range: $3"
+    echo "fetch opts: ${*:3}"
     (\
         sleep $IMAP_DELAY && \
         echo "t1 LOGIN $IMAP_USER $password" && \
         sleep $IMAP_DELAY && \
         echo "t2 SELECT $2" && \
         sleep $IMAP_DELAY && \
-        echo "t3 FETCH $3 FULL" && \
+        echo "t3 FETCH ${*:3}" && \
         sleep $IMAP_DELAY && \
-        echo "QUIT" ) | openssl s_client -connect $IMAP_SERVER -crlf
+        echo "QUIT" ) | openssl s_client -connect $IMAP_SERVER $split_s_client_opts
     ;;
     search)
     if [ -z ${3+x} ]; then
-        echo "usage: secsi search mailbox ..."
+        echo "usage: secsi search mailbox *options"
         exit 1
     fi
     echo "mailbox: $2"
-    echo "search_string: ${*:3}"
+    echo "search opts: ${*:3}"
     (\
         sleep $IMAP_DELAY && \
         echo "t1 LOGIN $IMAP_USER $password" && \
@@ -103,7 +111,7 @@ case $1 in
         sleep $IMAP_DELAY && \
         echo "t3 SEARCH ${*:3}" && \
         sleep $IMAP_DELAY && \
-        echo "QUIT" ) | openssl s_client -connect $IMAP_SERVER -crlf
+        echo "QUIT" ) | openssl s_client -connect $IMAP_SERVER $split_s_client_opts
     ;;
     expunge)
     if [ -z ${2+x} ]; then
@@ -119,7 +127,7 @@ case $1 in
         sleep $IMAP_DELAY && \
         echo "t3 EXPUNGE" && \
         sleep $IMAP_DELAY && \
-        echo "QUIT" ) | openssl s_client -connect $IMAP_SERVER -crlf
+        echo "QUIT" ) | openssl s_client -connect $IMAP_SERVER ${*:IMAP_S_CLIENT_OPTS}
     ;;
     *)
         echo "unsupported option: $1"
