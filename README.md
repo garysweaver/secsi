@@ -14,36 +14,25 @@ Set the following env vars:
 
 ### Usage
 
+Refer to [rfc3501](http://tools.ietf.org/html/rfc3501) for search.
+
+Example usage:
+
 ```
-  secsi list
-  secsi get mailbox id_or_range
-    e.g.
-    secsi get INBOX 3456
-    secsi get INBOX 3456:3466
-  secsi senton mailbox date
-    e.g
-    secsi senton INBOX 1-jun-2012
+secsi list
+secsi get mailbox id_or_range
+  e.g.
+  secsi get INBOX 3456
+  secsi get INBOX 3456:3466
+secsi search mailbox search_string
+  e.g
+  secsi search INBOX SENTON 1-jun-2012
+  secsi search INBOX SENTSINCE 1-may-2012 SENTBEFORE 3-jun-2012
+secsi expunge INBOX
 ```
-
-### Raw IMAP Access via OpenSSL
-
-You don't need this to interact directly with IMAP. For example:
-
-    openssl s_client -connect imap.googlemail.com:993 -crlf
-
-and then (`t1` command tag is arbitrary):
-
-    t1 LOGIN someuser@gmail.com somepassword
-
-Will get you in, and then you can get familiar with IMAP [here](http://tools.ietf.org/html/rfc3501).
-
-
-### Contribute
-
-Pull requests welcome to add additional support for IMAP commands and configuration, SMTP, etc.
 
 ### License
 
-Copyright 2014 Gary S. Weaver, released under the [GPLv3][lic] license.
+Copyright 2014 Gary S. Weaver, released under the [GPL v3][lic] license.
 
 [lic]: http://github.com/garysweaver/email_cli/blob/master/LICENSE
