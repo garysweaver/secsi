@@ -19,8 +19,6 @@ Optionally, you can set these:
 
 ### Usage
 
-Refer to [rfc3501](http://tools.ietf.org/html/rfc3501) for search.
-
 Example usage:
 
 ```
@@ -35,6 +33,8 @@ secsi search mailbox *options
   secsi search INBOX SENTSINCE 1-may-2012 SENTBEFORE 3-jun-2012
 secsi expunge INBOX
 ```
+
+Read [RFC 3501](http://tools.ietf.org/html/rfc3501).
 
 ### License
 
