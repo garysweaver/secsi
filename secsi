@@ -13,23 +13,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-# SECSI Email Command-line Script I
+# SECSI Email Command-line Script I v0.1.0
 # Copyright 2014 Gary S. Weaver
-
-echo
-if [ -z ${IMAP_SERVER+x} ]; then
-    echo "set IMAP_SERVER, e.g. IMAP_SERVER=imap.example.com:993"
-    exit 1
-else
-    echo "IMAP_SERVER='$IMAP_SERVER'"
-fi
-
-if [ -z ${IMAP_USER+x} ]; then
-    echo "set IMAP_USER, e.g. IMAP_USER=youremail@example.com"
-    exit 1
-else
-    echo "IMAP_USER='$IMAP_USER'"
-fi
 
 if [ -z ${1+x} ]; then
     echo "
@@ -39,28 +24,37 @@ Copyright 2014 Gary S. Weaver
 
 usage:
 
-  secsi list
-  secsi fetch mailbox id_or_range *options
-    e.g.
-    secsi fetch INBOX 3456 FULL
-    secsi fetch INBOX 3456:3466 \"(BODY.PEEK[HEADER.FIELDS (DATE FROM SUBJECT)])\"
-  secsi search mailbox *options
-    e.g
-    secsi search INBOX SENTON 1-jun-2012
-    secsi search INBOX SENTSINCE 1-may-2012 SENTBEFORE 3-jun-2012
-  secsi expunge INBOX
+  export IMAP_SERVER=imap.example.com:993
+  export IMAP_USER=youremail@example.com
+  ./secsi LIST '\"\" \"%\"'
+  IMAP_MAILBOX=INBOX ./secsi FETCH 3456 FULL
+  IMAP_MAILBOX=INBOX ./secsi FETCH 3456:3466 \"(BODY.PEEK[HEADER.FIELDS (DATE FROM SUBJECT)])\"
+  IMAP_MAILBOX=INBOX ./secsi SEARCH SENTON 1-jun-2012
+  IMAP_MAILBOX=INBOX ./secsi SEARCH SENTSINCE 1-may-2012 SENTBEFORE 3-jun-2012
 "
     exit 1
+fi
+
+echo
+if [ -z ${IMAP_SERVER+x} ]; then
+    echo "set IMAP_SERVER, e.g. export IMAP_SERVER=imap.example.com:993"
+    exit 1
+else
+    echo "IMAP_SERVER='$IMAP_SERVER'"
+fi
+
+if [ -z ${IMAP_USER+x} ]; then
+    echo "set IMAP_USER, e.g. export IMAP_USER=youremail@example.com"
+    exit 1
+else
+    echo "IMAP_USER='$IMAP_USER'"
 fi
 
 if [ -z ${IMAP_S_CLIENT_OPTS+x} ]; then
     # for starttls: IMAP_S_CLIENT_OPTS="-crlf -starttls smtp"
     export IMAP_S_CLIENT_OPTS="-crlf"
 fi
-
-if [ -z ${IMAP_DELAY+x} ]; then
-    export IMAP_DELAY=2
-fi
+echo "IMAP_S_CLIENT_OPTS='IMAP_S_CLIENT_OPTS'"
 
 echo -n Password: 
 read -s password
@@ -69,67 +63,11 @@ echo
 IFS=' ' read -a split_s_client_opts <<< "$IMAP_S_CLIENT_OPTS"
 echo "sending commands to: openssl s_client -connect $IMAP_SERVER $IMAP_S_CLIENT_OPTS"
 
-case $1 in
-    list)
-    (\
-        sleep $IMAP_DELAY && \
-        echo "t1 LOGIN $IMAP_USER $password" && \
-        sleep $IMAP_DELAY && \
-        echo "t2 LIST \"\" \"%\"" && \
-        sleep $IMAP_DELAY && \
-        echo "QUIT" ) | openssl s_client -connect $IMAP_SERVER $split_s_client_opts
-    ;;
-    fetch)
-    if [ -z ${3+x} ]; then
-        echo "usage: secsi fetch mailbox id_or_range *options"
-        exit 1
-    fi
-    echo "mailbox: $2"
-    echo "fetch opts: ${*:3}"
-    (\
-        sleep $IMAP_DELAY && \
-        echo "t1 LOGIN $IMAP_USER $password" && \
-        sleep $IMAP_DELAY && \
-        echo "t2 SELECT $2" && \
-        sleep $IMAP_DELAY && \
-        echo "t3 FETCH ${*:3}" && \
-        sleep $IMAP_DELAY && \
-        echo "QUIT" ) | openssl s_client -connect $IMAP_SERVER $split_s_client_opts
-    ;;
-    search)
-    if [ -z ${3+x} ]; then
-        echo "usage: secsi search mailbox *options"
-        exit 1
-    fi
-    echo "mailbox: $2"
-    echo "search opts: ${*:3}"
-    (\
-        sleep $IMAP_DELAY && \
-        echo "t1 LOGIN $IMAP_USER $password" && \
-        sleep $IMAP_DELAY && \
-        echo "t2 SELECT $2" && \
-        sleep $IMAP_DELAY && \
-        echo "t3 SEARCH ${*:3}" && \
-        sleep $IMAP_DELAY && \
-        echo "QUIT" ) | openssl s_client -connect $IMAP_SERVER $split_s_client_opts
-    ;;
-    expunge)
-    if [ -z ${2+x} ]; then
-        echo "usage: secsi expunge mailbox"
-        exit 1
-    fi
-    echo "mailbox: $2"
-    (\
-        sleep $IMAP_DELAY && \
-        echo "t1 LOGIN $IMAP_USER $password" && \
-        sleep $IMAP_DELAY && \
-        echo "t2 SELECT $2" && \
-        sleep $IMAP_DELAY && \
-        echo "t3 EXPUNGE" && \
-        sleep $IMAP_DELAY && \
-        echo "QUIT" ) | openssl s_client -connect $IMAP_SERVER ${*:IMAP_S_CLIENT_OPTS}
-    ;;
-    *)
-        echo "unsupported option: $1"
-    ;;
-esac
+(\
+    echo "t1 LOGIN $IMAP_USER $password"
+    test "$IMAP_MAILBOX" != '' && echo "t2 SELECT $IMAP_MAILBOX"
+    echo "t3 ${*:1}"
+    while sleep 1; do
+        echo "t4 LOGOUT"
+    done
+) | openssl s_client -connect $IMAP_SERVER $split_s_client_opts

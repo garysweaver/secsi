@@ -14,7 +14,6 @@ Set the following env vars:
 
 Optionally, you can set these:
 
-* `IMAP_DELAY=2` (default is 2 seconds)
 * `IMAP_S_CLIENT_OPTS="-crlf -starttls smtp"` (default is `-crlf`)
 
 ### Usage
@@ -22,16 +21,13 @@ Optionally, you can set these:
 Example usage:
 
 ```
-secsi list
-secsi fetch mailbox id_or_range *options
-  e.g.
-  secsi fetch INBOX 3456 FULL
-  secsi fetch INBOX 3456:3466 \"(BODY.PEEK[HEADER.FIELDS (DATE FROM SUBJECT)])\"
-secsi search mailbox *options
-  e.g
-  secsi search INBOX SENTON 1-jun-2012
-  secsi search INBOX SENTSINCE 1-may-2012 SENTBEFORE 3-jun-2012
-secsi expunge INBOX
+  export IMAP_SERVER=imap.example.com:993
+  export IMAP_USER=youremail@example.com
+  ./secsi LIST '"" "%"'
+  IMAP_MAILBOX=INBOX ./secsi FETCH 3456 FULL
+  IMAP_MAILBOX=INBOX ./secsi FETCH 3456:3466 "(BODY.PEEK[HEADER.FIELDS (DATE FROM SUBJECT)])"
+  IMAP_MAILBOX=INBOX ./secsi SEARCH SENTON 1-jun-2012
+  IMAP_MAILBOX=INBOX ./secsi SEARCH SENTSINCE 1-may-2012 SENTBEFORE 3-jun-2012
 ```
 
 Read [RFC 3501](http://tools.ietf.org/html/rfc3501).
