@@ -43,10 +43,7 @@ if [ -z ${IMAP_USER+x} ]; then
     exit 1
 fi
 
-if [ -z ${IMAP_S_CLIENT_OPTS+x} ]; then
-    # for starttls: IMAP_S_CLIENT_OPTS="-crlf -starttls smtp"
-    export IMAP_S_CLIENT_OPTS="-crlf"
-fi
+test "$IMAP_S_CLIENT_OPTS" == '' && export IMAP_S_CLIENT_OPTS="-crlf"
 
 echo -n Password: 
 read -s password
