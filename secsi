@@ -12,14 +12,11 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-# SECSI Email Command-line Script I v0.1.0
-# Copyright 2014 Gary S. Weaver
 
 if [ -z ${1+x} ]; then
     echo "
 SECSI Email Command-line Script I
-v0.0.1
+v0.1.0
 Copyright 2014 Gary S. Weaver
 
 usage:
@@ -39,22 +36,17 @@ echo
 if [ -z ${IMAP_SERVER+x} ]; then
     echo "set IMAP_SERVER, e.g. export IMAP_SERVER=imap.example.com:993"
     exit 1
-else
-    echo "IMAP_SERVER='$IMAP_SERVER'"
 fi
 
 if [ -z ${IMAP_USER+x} ]; then
     echo "set IMAP_USER, e.g. export IMAP_USER=youremail@example.com"
     exit 1
-else
-    echo "IMAP_USER='$IMAP_USER'"
 fi
 
 if [ -z ${IMAP_S_CLIENT_OPTS+x} ]; then
     # for starttls: IMAP_S_CLIENT_OPTS="-crlf -starttls smtp"
     export IMAP_S_CLIENT_OPTS="-crlf"
 fi
-echo "IMAP_S_CLIENT_OPTS='IMAP_S_CLIENT_OPTS'"
 
 echo -n Password: 
 read -s password
